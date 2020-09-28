@@ -1,21 +1,18 @@
 <template>
   <section>
-    <section>
-      <div class="columns">
+    <div
+      class="columns">
+      <div class="column">
         <div class="column">
           <b-button
             @click="addEvent">
             Add
           </b-button>
         </div>
-      </div>
-    </section>
-    <section>
-      <div
-        class="columns"
-        v-for="event in events"
-        :key="event.id">
-        <div class="column">
+        <div
+          class="column"
+          v-for="event in _events"
+          :key="event.id">
           <div class="columns">
             <div class="column">
               <b-field
@@ -48,20 +45,19 @@
                     v-model="event.active" />
               </b-field>
             </div>
+            <div class="column">
+              <delete-button only-icon />
+            </div>
           </div>
         </div>
-        <div class="column">
-          <codemirror
-            :value="_results"
-            :options="codeMirrorOpts" />
-        </div>
       </div>
-    </section>
+      <div class="column">
+        
+      </div>
+    </div>
   </section>
 </template>
 <script>
-import uid from 'uid'
-
 export default {
   name: 'TabEvents',
   props: {
@@ -89,12 +85,18 @@ export default {
     }
   },
   computed: {
-    _results: {
+    tabId () {
+      return this.$route.params.id
+    },
+    _events: {
       get () {
-        return JSON.stringify(this.results)
+        return this.events
+      },
+      updated (val) {
+        this.$emit('update:events', val)
       },
       set (val) {
-        this.results = JSON.parse(val)
+        this.$emit('update:events', val)
       }
     }
   },
@@ -125,14 +127,7 @@ export default {
       }
     },
     addEvent () {
-      let event = {
-        id: uid(),
-        name: null,
-        active: false,
-        responseType: 'string'
-      }
-
-      this.events.push(event)
+      this.$store.dispatch('addEvent', this.tabId)
     }
   }
 }

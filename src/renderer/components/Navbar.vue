@@ -4,10 +4,27 @@
     :mobile-burger="false">
     <template slot="start">
       <b-navbar-item
+        tag="router-link"
         v-for="tab in tabs"
         :key="tab.id"
-        @click="goToTab(tab.id)">
+        :active="$route.params.id && $route.params.id === tab.id"
+        :to="`/tab/${tab.id}`">
         {{ tab.name }}
+      </b-navbar-item>
+    </template>
+    <template slot="end">
+      <b-navbar-item
+        @click="addTab">
+        <b-icon
+          pack="remix"
+          icon="ri-add-box-line" />
+      </b-navbar-item>
+      <b-navbar-item
+        tag="router-link"
+        to="/settings">
+        <b-icon
+          pack="remix"
+          icon="ri-settings-3-line" />
       </b-navbar-item>
     </template>
   </b-navbar>
@@ -21,9 +38,14 @@ export default {
       required: true
     }
   },
+  data () {
+    return {
+      tab: null
+    }
+  },
   methods: {
-    goToTab (id) {
-      this.$router.push(`/tab/${id}`)
+    addTab () {
+      this.$store.dispatch('addTab')
     }
   }
 }

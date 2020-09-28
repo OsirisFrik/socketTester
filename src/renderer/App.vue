@@ -1,12 +1,16 @@
 <template>
   <div id="app">
     <nav-bar :tabs="tabs" />
-    <router-view />
+    <keep-alive>
+      <router-view :key="$route.path" />
+    </keep-alive>
   </div>
 </template>
 
 <script>
 import { mapGetters } from 'vuex'
+
+// components
 import NavBar from './components/Navbar'
 
 export default {

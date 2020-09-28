@@ -5,12 +5,14 @@ import VueCodemirror from 'vue-codemirror'
 import App from './App'
 import router from './router'
 import store from './store'
+import './components/globals'
 
 // Styles
 import 'buefy/dist/buefy.css'
 import 'remixicon/fonts/remixicon.css'
 import 'codemirror/lib/codemirror.css'
 import 'codemirror/theme/monokai.css'
+import './assets/styles.scss'
 
 if (!process.env.IS_WEB) Vue.use(require('vue-electron'))
 Vue.config.productionTip = false

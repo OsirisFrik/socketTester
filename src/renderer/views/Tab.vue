@@ -3,9 +3,13 @@
     <section class="section">
       <div class="columns">
         <div class="column is-two-fifths">
-          <b-input
-            v-model="tab.host"
-            placeholder="WS URL" />
+          <b-field
+            label="WS URL"
+            label-position="on-border">
+            <b-input
+              v-model="tab.host"
+              placeholder="WS URL" />
+          </b-field>
         </div>
         <div class="column">
           <b-button
@@ -21,7 +25,13 @@
           </b-button>
         </div>
         <div class="column">
-          
+          <b-button
+            class="is-pulled-right"
+            icon-pack="remix"
+            icon-left="ri-edit-box-line"
+            @click="modalEdit = true">
+            Edit
+          </b-button>
         </div>
       </div>
     </section>
@@ -42,50 +52,74 @@
           @emit-event="emitEvent" />
       </b-tab-item>
     </b-tabs>
+    <modal-form
+      :show.sync="modalEdit"
+      :name.sync="tab.name"
+      @submit="modalSave">
+      <template slot="title">
+        Edit tab &nbsp;<b>{{ tab.name }}</b>
+      </template>
+      <div class="columns">
+        <div class="column">
+          <b-field
+            label="Name"
+            label-position="on-border">
+            <b-input v-model="tab.name" />
+          </b-field>
+        </div>
+      </div>
+    </modal-form>
   </div>
 </template>
 <script>
 import { mapMutations } from 'vuex'
+
+// Utils
+import SockectConnection from '../utils/socket'
+
+// Components
 import TabOptions from '../components/tab/Options'
 import TabEmits from '../components/tab/Emits'
 import TabEvents from '../components/tab/Events'
+import ModalForm from '../components/modals/Form'
 
-import SockectConnection from '../utils/socket'
-import { getTabById, saveTabById } from '../utils/store'
+import { tabsCtrl } from '../utils/store'
 
 export default {
   name: 'TabView',
   components: {
     TabOptions,
     TabEvents,
-    TabEmits
+    TabEmits,
+    ModalForm
   },
   data () {
     return {
       activeTab: 1,
       socket: null,
-      tab: {},
-      saving: null
+      saving: null,
+      modalEdit: false,
+      tab: {}
     }
   },
-  beforeMount () {
-    if (process.env.NODE_ENV === 'development') window[`$tab_${this.$route.params.id}`] = this
+  async beforeMount () {
+    if (process.env.NODE_ENV === 'development') {
+      window[`$tab_${this.$route.params.id}`] = this
+    }
 
-    let tab = getTabById(this.$route.params.id)
-
-    if (!tab) this.$router.replace('/')
-    this.tab = tab
+    let tab = await tabsCtrl.getTabById(this.$route.params.id)
+    if (!tab.id) this.$router.replace('/')
+    else this.tab = tab
   },
   watch: {
     tab: {
       deep: true,
       handler (newValue, oldValue) {
-        console.log(newValue, oldValue)
         if (!oldValue.id) return
 
         if (this.saving) clearInterval(this.saving)
 
-        this.saving = setTimeout(this.saveTab, 1000)
+        this.saving = setTimeout(this.saveTab, 5000)
       }
     }
   },
@@ -119,15 +153,17 @@ export default {
 
       this.socket.emit(event.name, event.value)
     },
-    saveTab () {
-      try {
-        saveTabById(this.tab)
-      } catch (err) {
-        this.toast({
-          message: err.message,
-          type: 'is-danger'
-        })
+    async saveTab () {
+      this.$store.dispatch('saveTab', this.tab)
+    },
+    modalSave () {
+      if (this.saving) {
+        clearInterval(this.saving)
+        this.saving = null
       }
+
+      this.saveTab()
+      this.modalEdit = false
     }
   }
 }
